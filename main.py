@@ -15,7 +15,7 @@ def normalize_number(number: str) -> str:
 
 @app.get("/")
 def home():
-    return {"status": "ok", "developer": "@sahyog"}
+    return {"status": "ok"}
 
 @app.get("/lookup")
 def lookup(number: str):
@@ -33,9 +33,8 @@ def lookup(number: str):
         r = requests.post("https://chut.voidnetwork.in/api", headers=headers, json=json_data)
         data = r.json()
         return {
-            "developer": "@sahyog",
             "number": normalized,
             "response": data
         }
     except Exception as e:
-        return {"error": str(e), "developer": "@sahyog"}
+        return {"error": str(e)}
