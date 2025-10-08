@@ -33,8 +33,7 @@ def lookup(number: str):
         r = requests.post("https://chut.voidnetwork.in/api", headers=headers, json=json_data)
         data = r.json()
         return {
-            "number": normalized,
-            "response": data
+            data
         }
     except Exception as e:
         return {"error": str(e)}
