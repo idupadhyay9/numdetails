@@ -1,5 +1,5 @@
-from fastapi import FastAPI
-import requests, json
+from fastapi import FastAPI, Request, HTTPException
+import requests
 
 app = FastAPI()
 
@@ -13,13 +13,24 @@ def normalize_number(number: str) -> str:
             return "+91" + number
     return number
 
+REQUIRED_API_KEY = "ishu@1"
+
 @app.get("/")
 def home():
     return {"status": "ok"}
 
 @app.get("/lookup")
-def lookup(number: str):
-    normalized = normalize_number(number)
+def lookup(key: str = "", num: str = ""):
+    # ✅ API Key check
+    if key != REQUIRED_API_KEY:
+        raise HTTPException(status_code=403, detail="Invalid or missing API key")
+
+    # ✅ Validate num
+    if not num:
+        raise HTTPException(status_code=400, detail="Missing 'num' parameter")
+
+    normalized = normalize_number(num)
+    
     headers = {
         'authority': 'chut.voidnetwork.in',
         'accept': '*/*',
@@ -28,10 +39,12 @@ def lookup(number: str):
         'referer': 'https://chut.voidnetwork.in/',
         'user-agent': 'Mozilla/5.0'
     }
+    
     json_data = {'type': 'mobile', 'term': normalized}
+
     try:
-        r = requests.post("https://chut.voidnetwork.in/api", headers=headers, json=json_data)
-        data = r.json()
-        return data
-    except Exception as e:
-        return {"error": str(e)}
+        r = requests.post("https://chut.voidnetwork.in/api", headers=headers, json=json_data, timeout=10)
+        r.raise_for_status()
+        return r.json()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Upstream request failed: {str(e)}")
