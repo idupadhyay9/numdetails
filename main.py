@@ -17,6 +17,11 @@ def normalize_number(number: str) -> str:
 def home():
     return {"status": "ok", "developer": "@iacceptescrow2"}
 
+# ✅ Ignore favicon.ico requests to prevent 400 errors
+@app.get("/favicon.ico")
+def favicon():
+    return {}
+
 @app.get("/lookup")
 def lookup(number: str):
     normalized = normalize_number(number)
