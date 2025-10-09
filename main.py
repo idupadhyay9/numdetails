@@ -15,12 +15,7 @@ def normalize_number(number: str) -> str:
 
 @app.get("/")
 def home():
-    return {"status": "ok", "developer": "@iacceptescrow2"}
-
-# ✅ Ignore favicon.ico requests to prevent 400 errors
-@app.get("/favicon.ico")
-def favicon():
-    return {}
+    return {"status": "ok"}
 
 @app.get("/lookup")
 def lookup(number: str):
@@ -37,10 +32,6 @@ def lookup(number: str):
     try:
         r = requests.post("https://chut.voidnetwork.in/api", headers=headers, json=json_data)
         data = r.json()
-        return {
-            "developer": "@iacceptescrow2",
-            "number": normalized,
-            "response": data
-        }
+        return data
     except Exception as e:
-        return {"error": str(e), "developer": "@iacceptescrow2"}
+        return {"error": str(e)}
