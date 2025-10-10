@@ -20,16 +20,16 @@ def home():
     return {"status": "ok"}
 
 @app.get("/lookup")
-def lookup(key: str = "", num: str = ""):
+def lookup(key: str = "", number: str = ""):
     # ✅ API Key check
     if key != REQUIRED_API_KEY:
         raise HTTPException(status_code=403, detail="Invalid or missing API key")
 
-    # ✅ Validate num
-    if not num:
-        raise HTTPException(status_code=400, detail="Missing 'num' parameter")
+    # ✅ Validate number
+    if not number:
+        raise HTTPException(status_code=400, detail="Missing 'number' parameter")
 
-    normalized = normalize_number(num)
+    normalized = normalize_number(number)
     
     headers = {
         'authority': 'chut.voidnetwork.in',
