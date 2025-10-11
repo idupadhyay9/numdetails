@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 import requests
 
 app = FastAPI()
@@ -20,7 +20,12 @@ def home():
     return {"status": "ok"}
 
 @app.get("/lookup")
-def lookup(key: str = "", number: str = ""):
+def lookup(
+    key: str = "",
+    number: str = "",
+    limit: int = Query(5, description="Number of results (if API supports)"),
+    page: int = Query(1, description="Page number (if API supports)")
+):
     # ✅ API Key check
     if key != REQUIRED_API_KEY:
         raise HTTPException(status_code=403, detail="Invalid or missing API key")
@@ -40,7 +45,12 @@ def lookup(key: str = "", number: str = ""):
         'user-agent': 'Mozilla/5.0'
     }
     
-    json_data = {'type': 'mobile', 'term': normalized}
+    json_data = {
+        'type': 'mobile',
+        'term': normalized,
+        'limit': limit,   # optional, if upstream API supports
+        'page': page      # optional, if upstream API supports
+    }
 
     try:
         r = requests.post("https://chut.voidnetwork.in/api", headers=headers, json=json_data, timeout=10)
