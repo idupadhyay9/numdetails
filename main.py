@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException
 import requests
+import re
 
 app = FastAPI()
 
@@ -15,17 +16,25 @@ def normalize_number(number: str) -> str:
 
 REQUIRED_API_KEY = "ishu@1"
 
+# ✅ Helper to remove URLs from JSON recursively
+def remove_links(obj):
+    url_pattern = re.compile(r"https?://\S+")
+    
+    if isinstance(obj, dict):
+        return {k: remove_links(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [remove_links(i) for i in obj]
+    elif isinstance(obj, str):
+        return url_pattern.sub("[LINK REMOVED]", obj)
+    else:
+        return obj
+
 @app.get("/")
 def home():
     return {"status": "ok"}
 
 @app.get("/lookup")
-def lookup(
-    key: str = "",
-    number: str = "",
-    limit: int = Query(5, description="Number of results (if API supports)"),
-    page: int = Query(1, description="Page number (if API supports)")
-):
+def lookup(key: str = "", number: str = ""):
     # ✅ API Key check
     if key != REQUIRED_API_KEY:
         raise HTTPException(status_code=403, detail="Invalid or missing API key")
@@ -45,16 +54,13 @@ def lookup(
         'user-agent': 'Mozilla/5.0'
     }
     
-    json_data = {
-        'type': 'mobile',
-        'term': normalized,
-        'limit': limit,   # optional, if upstream API supports
-        'page': page      # optional, if upstream API supports
-    }
+    json_data = {'type': 'mobile', 'term': normalized}
 
     try:
         r = requests.post("https://chut.voidnetwork.in/api", headers=headers, json=json_data, timeout=10)
         r.raise_for_status()
-        return r.json()
+        data = r.json()
+        sanitized = remove_links(data)  # ✅ remove all links
+        return sanitized
     except requests.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Upstream request failed: {str(e)}")
