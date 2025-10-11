@@ -25,7 +25,7 @@ def remove_links(obj):
     elif isinstance(obj, list):
         return [remove_links(i) for i in obj]
     elif isinstance(obj, str):
-        return url_pattern.sub("[LINK REMOVED]", obj)
+        return url_pattern.sub("", obj)  # completely remove link
     else:
         return obj
 
@@ -60,7 +60,15 @@ def lookup(key: str = "", number: str = ""):
         r = requests.post("https://chut.voidnetwork.in/api", headers=headers, json=json_data, timeout=10)
         r.raise_for_status()
         data = r.json()
-        sanitized = remove_links(data)  # ✅ remove all links
+
+        # ✅ Remove unwanted keys like join_backup and join_main
+        data.pop("join_backup", None)
+        data.pop("join_main", None)
+
+        # ✅ Remove any links inside remaining data
+        sanitized = remove_links(data)
+
         return sanitized
+
     except requests.RequestException as e:
         raise HTTPException(status_code=502, detail=f"Upstream request failed: {str(e)}")
